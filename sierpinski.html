@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="./gl-matrix.js"></script>
+</head>
+<body>
+    <canvas width="800" height="800" id="canvas"></canvas>
+    <script>
+        const gl = document.getElementById('canvas').getContext('webgl');
+
+        const vsSource = `
+            attribute vec4 a_Position;
+            void main() {
+                gl_Position = a_Position;
+            }`;
+        const fsSource = `
+            precision mediump float;
+            void main() {
+                gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
+            }`;
+
+        const vsShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fsShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+        const shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vsShader);
+        gl.attachShader(shaderProgram, fsShader);
+        gl.linkProgram(shaderProgram);
+        gl.useProgram(shaderProgram);
+
+        const vertices = [
+            0, 0.9,
+            -0.9, -0.9,
+            0.9, -0.9,
+        ];
+
+        // const FSIZE = vertices.BYTES_PER_ELEMENT;
+
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+        const a_Position = gl.getAttribLocation(shaderProgram, 'a_Position');
+        gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(a_Position);
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.drawArrays(gl.LINE_LOOP, 0, 3);
+
+        function loadShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+
+            return shader;
+        }
+        function filterPoint(index, total) {
+            return function (val, i) {
+                const startIndex = index * total;
+                if (i >= startIndex && i < (startIndex + total)) {
+                    return true;
+                }
+                return false;
+            }
+        }
+        function middlePoint(p1, p2) {
+            return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+        }
+
+        function addRandomPoint(target, p, result) {
+            // 0 | 1 | 2
+            const index = Math.floor(Math.random() * 3);
+            const vertex = target.filter(filterPoint(index, 2));
+
+        }
+    </script>
+</body>
+</html>
